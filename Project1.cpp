@@ -1,33 +1,33 @@
-// Project1.cpp : Defines the entry point for the console application.
 //
 
 #include "myscheduler.h"
 #include <list>
-#include <iostream>
 #include <time.h>
-
-using namespace std;
 
 int main(int argc, char* argv[])
 {
-  int numberOfCPUs = 12;
-  MyScheduler scheduler = MyScheduler(STRFwoP, numberOfCPUs);
-	srand(time(NULL));
-  int totalThreads = 75;
+  int numberOfCPUs = 5;
+  Policy policy = FCFS;
+  string policyString = "FCFS";
   
-//  for (int i = 0; i < totalThreads; i++)
-//  {
-//    scheduler.CreateThread(i, (rand() % 20) + 1, priority, i);
-//  }
+  MyScheduler ms = MyScheduler(policy, numberOfCPUs);
+  
+	srand(time(NULL));
+  
+  int totalThreads = 60;
+  
+  cout << "Testbench via Adam Geiger\n\n";
+  
+  cout << "\tUsing " << policyString << ", " << numberOfCPUs << " CPUs, random remaining times and arrivial time and priorities\n";
   
   for (int i = 0; i < totalThreads; i++)
 	{
-		scheduler.CreateThread(i + rand() % 5, 1 + rand() % 40, rand() % 20, i);
+		ms.CreateThread(i + rand() % 5, (rand() % 40) + 1, rand() % 20, i);
 	}
 
-	scheduler.PrintThreads("Threads", scheduler.Threads);
+	ms.PrintThreads("Threads", ms.Threads);
 
-	scheduler.Go();
+	ms.Go();
   
 	return 0;
 }
