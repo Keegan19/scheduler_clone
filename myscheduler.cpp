@@ -30,9 +30,11 @@ bool MyScheduler::Dispatch()
     if ((*threadIter)->remaining_time == 0)
     {
       //delete thread.
-      ReadyQueue.erase(threadIter);
+      threadIter = ReadyQueue.erase(threadIter);
     }
-    threadIter++;
+	else {
+		threadIter++;
+	}
   }
   // 2. All threads are finished.
   if (Threads.size() == 0 && ReadyQueue.size() == 0)
@@ -54,7 +56,7 @@ bool MyScheduler::Dispatch()
 	switch(policy)
 	{
 		case FCFS:		//First Come First Serve
-      FirstComeFirstServed();
+			FirstComeFirstServed();
 			break;
 		case STRFwoP:	//Shortest Time Remaining First, without preemption
       ShortestTimeRemainingWithoutPreemption();
@@ -76,38 +78,39 @@ bool MyScheduler::Dispatch()
 
 void MyScheduler::FirstComeFirstServed()
 {
-  // Moving threads that have arrived from Threads to ReadyQueue and sorting them by remaining time.
-  while (Threads.size() != 0 && Threads.front()->arriving_time <= timer)
-  {
-    ThreadDescriptorBlock* temp = Threads.front();
-    ReadyQueue.push_back(temp);
-    Threads.pop_front();
-  }
-  //#debug
-  cout<< "Time: " << timer << endl;
-  PrintThreads("ReadyQueue after threads' arrival", ReadyQueue);
-  PrintCPUs("CPUs before Algorithm.");
-  if (ReadyQueue.size() != 0)
-  {
-    for (int cpu_i = 0; cpu_i < num_cpu; cpu_i++)
-    {
-      // nothing in this cpu.
-      if (CPUs[cpu_i] == NULL)
-      {
-        if (ReadyQueue.size() != 0)
-        {
-          // save reference to this thread in this cpu.
-          CPUs[cpu_i] = ReadyQueue.front();
-          // take thread out of readyQueue.
-          ReadyQueue.pop_front();
-        }
-      }
-    }
-    
-  }
-  //#debug
-  PrintCPUs("CPUs after algorithm.");
-  PrintThreads("ReadyQueue after after algorithm.", ReadyQueue);
+	// Moving threads that have arrived from Threads to ReadyQueue and sorting them by remaining time.
+	while (Threads.size() != 0 && Threads.front()->arriving_time <= timer)
+	{
+		ThreadDescriptorBlock* temp = Threads.front();
+		ReadyQueue.push_back(temp);
+		Threads.pop_front();
+	}
+	//#debug
+	cout << "Time: " << timer << endl;
+	PrintThreads("ReadyQueue after threads' arrival", ReadyQueue);
+	PrintCPUs("CPUs before Algorithm.");
+	if (ReadyQueue.size() != 0)
+	{
+		for (int cpu_i = 0; cpu_i < num_cpu; cpu_i++)
+		{
+			// nothing in this cpu.
+			if (CPUs[cpu_i] == NULL)
+			{
+				if (ReadyQueue.size() != 0)
+				{
+					// save reference to this thread in this cpu.
+					CPUs[cpu_i] = ReadyQueue.front();
+					// take thread out of readyQueue.
+					ReadyQueue.pop_front();
+				}
+			}
+		}
+
+	}
+	//#debug
+	PrintCPUs("CPUs after algorithm.");
+	PrintThreads("ReadyQueue after after algorithm.", ReadyQueue);
+
 }
 
 void MyScheduler::ShortestTimeRemainingWithoutPreemption()
@@ -195,7 +198,7 @@ void MyScheduler::ShortestTimeRemainingPreemption()
       }
       if (largest_cpu_remaining_time != -1)
       {
-        // temporarly save thread coming out of CPU.
+        // temporarily save thread coming out of CPU.
         ThreadDescriptorBlock *temp = CPUs[largest_cpu_remaining_time];
         // save reference to this thread in this cpu.
         CPUs[largest_cpu_remaining_time] = ReadyQueue.front();
@@ -249,32 +252,32 @@ void MyScheduler::PrioritySchedulingWithPreemption()
       // reamining time compared to the other cpus.
       // -1 means no CPU has a thread with remaining time greater
       //  than some thread in the readyqueue.
-      int largest_cpu_remaining_time = -1;
+      int highest_cpu_priority = -1;
       for (int cpu_i = 0; cpu_i < num_cpu; cpu_i++)
       {
         // nothing in this cpu.
         if (CPUs[cpu_i] == NULL)
         {
-          largest_cpu_remaining_time = cpu_i;
+          highest_cpu_priority = cpu_i;
           
           //exit loop
           cpu_i = num_cpu;
         }
-        else if (CPUs[cpu_i]->remaining_time > ReadyQueue.front()->remaining_time)
+        else if (CPUs[cpu_i]->priority > ReadyQueue.front()->priority)
         {
-          if (largest_cpu_remaining_time == -1 ||
-              CPUs[largest_cpu_remaining_time]->remaining_time < CPUs[cpu_i]->remaining_time)
+          if (highest_cpu_priority == -1 ||
+              CPUs[highest_cpu_priority]->priority > CPUs[cpu_i]->priority)
           {
-            largest_cpu_remaining_time = cpu_i;
+            highest_cpu_priority = cpu_i;
           }
         }
       }
-      if (largest_cpu_remaining_time != -1)
+      if (highest_cpu_priority != -1)
       {
         // temporarly save thread coming out of CPU.
-        ThreadDescriptorBlock *temp = CPUs[largest_cpu_remaining_time];
+        ThreadDescriptorBlock *temp = CPUs[highest_cpu_priority];
         // save reference to this thread in this cpu.
-        CPUs[largest_cpu_remaining_time] = ReadyQueue.front();
+        CPUs[highest_cpu_priority] = ReadyQueue.front();
         // take thread out of readyQueue.
         ReadyQueue.pop_front();
         // a swap of two threads occurred.
